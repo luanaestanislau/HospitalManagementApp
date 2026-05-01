@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
@@ -166,13 +168,13 @@ fun HeaderSectionLogin(modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = "Acesso Institucional",
+            text = stringResource(R.string.institutional_access),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Text(
-            text = "Use o e-mail fornecido pelo hospital",
+            text = stringResource(R.string.email_required),
             fontSize = 13.sp,
             color = MediSubtext
         )
@@ -210,7 +212,7 @@ fun Forms(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "E-mail institucional",
+            text = stringResource(R.string.institutional_email),
             fontSize = 13.sp,
             color = MediSubtext,
             fontWeight = FontWeight.Medium
@@ -221,7 +223,7 @@ fun Forms(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
-            placeholder = { Text("usuario@hospital.br", color = MediSubtext) },
+            placeholder = { Text(stringResource(R.string.example_email), color = MediSubtext) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MediPrimary,
                 unfocusedBorderColor = MediSubtext,
@@ -251,7 +253,7 @@ fun Forms(
         }
 
         Text(
-            text = "Senha",
+            text = stringResource(R.string.password),
             fontSize = 13.sp,
             color = MediSubtext,
             fontWeight = FontWeight.Medium
@@ -287,7 +289,7 @@ fun Forms(
         )
 
         Text(
-            text = "E-mails pessoais (@gmail, @outlook) não são aceitos. O domínio precisa estar cadastrado pelo TI do hospital.",
+            text = stringResource(R.string.not_required_emails),
             fontSize = 11.sp,
             color = MediSubtext
         )
@@ -325,13 +327,13 @@ fun Forms(
         colors = ButtonDefaults.buttonColors(containerColor = MediPrimary)
     ) {
         Text(
-            text = "Verificar e continuar",
+            text = stringResource(R.string.verify_continue),
             fontSize = 15.sp, fontWeight = FontWeight.SemiBold
         )
     }
 
     Text(
-        text = "Acesso restrito · LGPD · Criptografia ponta a ponta",
+        text = stringResource(R.string.lgpd),
         fontSize = 11.sp,
         color = MediSubtext
     )

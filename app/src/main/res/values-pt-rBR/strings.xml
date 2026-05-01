@@ -26,4 +26,11 @@
     <string name="prev_days">Previsão de demanda — 7 dias</string>
     <string name="delivery_status">Entregas em andamento</string>
     <string name="credits">ℹ️ Sobre o MediStock / Créditos</string>
+    <string name="institutional_access">Acesso Institucional</string>
+    <string name="email_required">Use o e-mail fornecido pelo hospital</string>
+    <string name="example_email">usuario@hospital.br</string>
+    <string name="password">Senha</string>
+    <string name="not_required_emails">E-mails pessoais (@gmail, @outlook) não são aceitos. O domínio precisa estar cadastrado pelo TI do hospital.</string>
+    <string name="verify_continue">Verificar e continuar</string>
+    <string name="lgpd">Acesso restrito · LGPD · Criptografia ponta a ponta</string>
 </resources>

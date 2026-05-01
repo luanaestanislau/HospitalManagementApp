@@ -4,11 +4,11 @@ import br.com.fiap.hospitalmanagement.model.Delivery
 
 class DeliveryRepository {
     private val deliveries = listOf(
-        Delivery("#0039", "ForneceMed", "ETA: 14:30 — hoje", "Em rota", false),
-        Delivery("#0041", "MedSupply", "Previsto: 10:00 — atrasado 4h", "Atrasado", true),
-        Delivery("#0042", "PharmaBR", "ETA: amanhã 09:00", "Aguardando", false),
-        Delivery("#0043", "ChemLab", "ETA: amanhã 14:00", "Aprovado", false),
-        Delivery("#0038", "MedTech", "Entregue ontem", "Entregue", false)
+        Delivery("#0039", "ForneceMed", "ETA: 14:30", "Em rota", false),
+        Delivery("#0041", "MedSupply", "SLA excedido", "Atrasado", true),
+        Delivery("#0038", "HospPro", "ETA: 16:00", "Em rota", false),
+        Delivery("#0036", "ForneceMed", "11:45", "Entregue", false),
+        Delivery("#0042", "PharmaBR", "ETA: 18:00", "Em rota", false)
     )
 
     fun getAllDeliveries(): List<Delivery> = deliveries
@@ -18,6 +18,6 @@ class DeliveryRepository {
     }
 
     fun getTodayDeliveriesCount(): Int = deliveries.count { 
-        it.eta.contains("hoje") || it.status == "Atrasado" || it.status == "Em rota"
+        it.status == "Atrasado" || it.status == "Em rota"
     }
 }
