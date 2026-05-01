@@ -182,8 +182,8 @@ private fun FunctionalField(label: String, value: String, onValueChange: (String
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MediSuccess,
-                unfocusedBorderColor = MediSuccess,
+                focusedBorderColor = MediPrimary,
+                unfocusedBorderColor = MediSubtext,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             )
