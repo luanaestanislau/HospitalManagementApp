@@ -2,16 +2,20 @@ package br.com.fiap.hospitalmanagement.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -58,8 +62,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    horizontal = 32.dp,
-                    vertical = 48.dp
+                    horizontal = 28.dp,
+                    vertical = 60.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
@@ -86,41 +90,47 @@ fun HeaderSection() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
-        Box(contentAlignment = Alignment.BottomEnd) {
-            Box(modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+        Box(
+            modifier = Modifier
+                .width(160.dp)
+                .height(130.dp)
+                .clip(RoundedCornerShape(32.dp))
                 .background(MediIconBg),
-                contentAlignment = Alignment.Center
-            ) {
+            contentAlignment = Alignment.Center
+        ) {
+            Box(contentAlignment = Alignment.BottomEnd) {
                 Icon(
                     imageVector = Icons.Default.Assignment,
                     contentDescription = stringResource(R.string.medistock_logo),
                     tint = MediPrimary,
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(64.dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.CheckCircleOutline,
+                    contentDescription = null,
+                    tint = MediPrimary,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .offset(x = 6.dp, y = 6.dp)
                 )
             }
-            Icon(
-                imageVector = Icons.Default.CheckCircleOutline,
-                contentDescription = null,
-                tint = MediPrimary,
-                modifier = Modifier.size(28.dp)
-            )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(R.string.medistock),
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
+                fontSize = 32.sp
             )
         )
         Text(
             text = stringResource(R.string.medistock_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MediSubtext,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontSize = 22.sp
         )
     }
 }
@@ -152,16 +162,20 @@ private fun FeatureItem(color: Color, text: String) {
          modifier = Modifier
              .fillMaxWidth()
              .clip(RoundedCornerShape(12.dp))
-             .background(MediCardBg) // Fundo suave com a cor do tema
-             .padding(horizontal = 16.dp, vertical = 14.dp)
+             .background(MediCardBg)
+             .border(
+                 width = 1.dp,
+                 color = Color.White.copy(alpha = 0.1f)
+             )
+             .padding(horizontal = 20.dp, vertical = 18.dp)
      ) {
          Box(
              modifier = Modifier
-                 .size(8.dp)
+                 .size(10.dp)
                  .clip(CircleShape)
                  .background(color)
          )
-         androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(12.dp))
+         Spacer(modifier = Modifier.size(14.dp))
          Text(
              text = text,
              style = MaterialTheme.typography.bodyMedium,
@@ -183,22 +197,22 @@ fun ActionSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
             onClick = {},
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MediPrimary
             )
         ) {
             Text(
                 text = stringResource(R.string.signin),
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -206,15 +220,16 @@ fun ActionSection() {
             onClick = {},
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp,
                 Color.White.copy(alpha = 0.5f)
             )
         ) {
             Text(
                 text = stringResource(R.string.learn_more),
-                color = Color.White
+                color = Color.White,
+                fontSize = 16.sp
             )
         }
         Text(
