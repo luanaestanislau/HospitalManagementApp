@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="medistock_logo">MediStock Logo</string>
+    <string name="medistock">MediStock</string>
+    <string name="medistock_subtitle">Gestão inteligente de insumos\nhospitalares com IA</string>
+    <string name="feature_item">Monitoramento de estoque em tempo real</string>
+    <string name="feature_item2">Previsão de demanda com IA</string>
+    <string name="feature_item3">Rastreamento de entregas e alertas</string>
+    <string name="signin">Entrar</string>
+    <string name="learn_more">Saiba mais</string>
+    <string name="version_app">v1.0 · Seguro e conforme com a LGPD</string>
+</resources>
