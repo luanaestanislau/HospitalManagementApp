@@ -106,7 +106,7 @@ fun StockScreen(navController: NavController) {
 
     Scaffold(
         containerColor = MediBackground,
-        bottomBar = { MediBottomBar(navController) }
+        bottomBar = { MedBottomBar(navController) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -366,6 +366,7 @@ private fun StockDataTable(
             }
 
             HorizontalDivider(thickness = 0.5.dp, color = Color.White.copy(alpha = 0.1f))
+
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
@@ -438,7 +439,7 @@ private fun StockDataTable(
 }
 
 @Composable
-private fun MediBottomBar(navController: NavController) {
+private fun MedBottomBar(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
