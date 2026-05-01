@@ -13,4 +13,5 @@ sealed class Destination(val route: String) {
     object AlertsScreen : Destination("alerts")
     object LogisticsScreen : Destination("logistics")
     object PrevAIScreen : Destination("prevIA")
+    object CreditsScreen : Destination("credits")
 }

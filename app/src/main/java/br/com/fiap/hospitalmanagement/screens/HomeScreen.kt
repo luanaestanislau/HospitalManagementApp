@@ -33,8 +33,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +74,27 @@ fun HomeScreen(navController: NavController, email: String) {
     var selectedNav by remember { mutableIntStateOf(0) }
     val tabs = listOf("Dashboard", "Estoque", "Previsão IA", "Logística", "Alertas", "Pedido")
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    val mockAlerts = listOf(
+        StockAlert(1, "Insulina Glargina: Estoque Crítico", "12 min atrás", AlertType.LOW_STOCK),
+        StockAlert(2, "Lote #882: Vencimento em 5 dias", "45 min atrás", AlertType.EXPIRING),
+        StockAlert(3, "Pedido #392: Atraso na entrega", "2h atrás", AlertType.DELAY)
+    )
+
+    val mockForecast = listOf(
+        DemandForecast("Seg", 0.4f),
+        DemandForecast("Ter", 0.6f),
+        DemandForecast("Qua", 0.9f, true),
+        DemandForecast("Qui", 0.7f),
+        DemandForecast("Sex", 0.8f),
+        DemandForecast("Sab", 0.3f),
+        DemandForecast("Dom", 0.2f)
+    )
+
+    val mockDeliveries = listOf(
+        Delivery("PED-2024-001", "Eurofarma", "14:30 (Hoje)", "Em rota"),
+        Delivery("PED-2024-005", "Cristália", "Atrasado", "Pendente", isDelayed = true)
+    )
 
     Scaffold(
         containerColor = MediBackground,

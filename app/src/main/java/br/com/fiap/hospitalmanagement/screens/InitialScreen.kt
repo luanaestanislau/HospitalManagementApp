@@ -73,9 +73,7 @@ fun InitialScreen(navController: NavController) {
         ) {
             HeaderSection()
             FeaturesSection()
-            ActionSection(
-
-            )
+            ActionSection(navController)
         }
     }
 }
@@ -84,7 +82,7 @@ fun InitialScreen(navController: NavController) {
 @Composable
 private fun InitialScreenPreview() {
     HospitalManagementTheme() {
-        InitialScreen()
+        InitialScreen(rememberNavController())
     }
 }
 
@@ -222,7 +220,7 @@ fun ActionSection(navController: NavController) {
             )
         }
         OutlinedButton(
-            onClick = {},
+            onClick = { },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

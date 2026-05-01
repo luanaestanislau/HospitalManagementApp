@@ -1,5 +1,65 @@
 package br.com.fiap.hospitalmanagement.screens
 
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
+import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
+import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
+import br.com.fiap.hospitalmanagement.ui.theme.MediError
+import br.com.fiap.hospitalmanagement.ui.theme.MediPrimary
+import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
+import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
+import br.com.fiap.hospitalmanagement.ui.theme.MediSurface
+import br.com.fiap.hospitalmanagement.ui.theme.MediWarning
+
 private data class MonthForecastData(
     val month: String,
     val historicPercent: Float,
@@ -49,7 +109,7 @@ fun PrevAIScreen(navController: NavController) {
     var selectedProduct by remember { mutableStateOf(productOptions[0]) }
     var showDropdown by remember { mutableStateOf(false) }
 
-    Scaffold(
+    Scaffold (
         containerColor = MediBackground,
         bottomBar = {
             NavigationBar(containerColor = MediSurface) {
@@ -98,11 +158,10 @@ fun PrevAIScreen(navController: NavController) {
                                 .background(if (isSelected) MediPrimary else MediCardBg)
                                 .clickable {
                                     when (index) {
-                                        0 -> navController.navigate(Destination.DashboardScreen.createRoute(email))
+                                        0 -> navController.navigate(Destination.HomeScreen.createRoute(email))
                                         1 -> navController.navigate(Destination.StockScreen.route)
                                         3 -> navController.navigate(Destination.LogisticsScreen.route)
                                         4 -> navController.navigate(Destination.AlertsScreen.route)
-                                        5 -> navController.navigate(Destination.OrderScreen.route)
                                     }
                                 }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -143,7 +202,7 @@ fun PrevAIScreen(navController: NavController) {
                         Text(text = selectedProduct, fontSize = 14.sp, color = Color.White)
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = MediSubtext)
                     }
-                    DropdownMenu(
+                    DropdownMenu (
                         expanded = showDropdown,
                         onDismissRequest = { showDropdown = false },
                         modifier = Modifier.background(MediCardBg)
