@@ -11,6 +11,7 @@ import br.com.fiap.hospitalmanagement.model.User
 abstract class MediStockDatabase : RoomDatabase() {
 
     abstract fun medItemDao(): MedItemDao
+    abstract fun userDao(): UserDao
 
     companion object {
         private lateinit var instance: MediStockDatabase

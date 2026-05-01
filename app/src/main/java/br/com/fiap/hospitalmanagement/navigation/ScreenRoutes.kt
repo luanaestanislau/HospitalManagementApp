@@ -9,7 +9,9 @@ sealed class Destination(val route: String) {
     object HomeScreen : Destination("home/{email}") {
         fun createRoute(email: String) = "home/$email"
     }
-    object StockScreen : Destination("stock")
+    object StockScreen : Destination("stock/{email}") {
+        fun createRoute(email: String) = "stock/$email"
+    }
     object AlertsScreen : Destination("alerts")
     object LogisticsScreen : Destination("logistics")
     object PrevAIScreen : Destination("prevIA")

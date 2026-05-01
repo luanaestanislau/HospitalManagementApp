@@ -2,7 +2,6 @@ package br.com.fiap.hospitalmanagement.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,8 +31,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,7 @@ import br.com.fiap.hospitalmanagement.model.Delivery
 import br.com.fiap.hospitalmanagement.model.DemandForecast
 import br.com.fiap.hospitalmanagement.model.StockAlert
 import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.repository.UserRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
@@ -67,16 +69,23 @@ private data class NavItem(val label: String, val icon: ImageVector, val route: 
 
 @Composable
 fun HomeScreen(navController: NavController, email: String) {
+    val context = LocalContext.current
+    val userRepository = remember { UserRepository(context) }
+    var userName by remember { mutableStateOf("") }
+
+    LaunchedEffect(email) {
+        val user = userRepository.getUserByEmail(email)
+        userName = user?.name ?: ""
+    }
+
     val navItems = listOf(
         NavItem("Home", Icons.Default.Home, Destination.HomeScreen.createRoute(email)),
-        NavItem("Estoque", Icons.Default.Inventory, Destination.StockScreen.route),
+        NavItem("Estoque", Icons.Default.Inventory, Destination.StockScreen.createRoute(email)),
         NavItem("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
         NavItem("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
         NavItem("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route)
     )
     var selectedNav by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Dashboard", "Estoque", "Previsão IA", "Logística", "Alertas", "Pedido")
-    var selectedTab by remember { mutableIntStateOf(0) }
 
     val mockAlerts = listOf(
         StockAlert(1, "Insulina Glargina: Estoque Crítico", "12 min atrás", AlertType.LOW_STOCK),
@@ -102,34 +111,10 @@ fun HomeScreen(navController: NavController, email: String) {
     Scaffold(
         containerColor = MediBackground,
         bottomBar = {
-            NavigationBar(containerColor = MediSurface) {
-                navItems.forEachIndexed { index, item ->
-                    NavigationBarItem(
-                        selected = selectedNav == index,
-                        onClick = {
-                            selectedNav = index
-                            if (item.route != Destination.HomeScreen.createRoute(email)) {
-                                navController.navigate(item.route)
-                            }
-                        },
-                        icon = {
-                            if (index == 4) {
-                                BadgedBox(badge = { Badge { Text("3") } }) {
-                                    Icon(item.icon, contentDescription = item.label)
-                                }
-                            } else {
-                                Icon(item.icon, contentDescription = item.label)
-                            }
-                        },
-                        label = { Text(item.label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MediPrimary,
-                            selectedTextColor = MediPrimary,
-                            unselectedIconColor = MediSubtext,
-                            unselectedTextColor = MediSubtext,
-                            indicatorColor = MediPrimary.copy(alpha = 0.15f)
-                        )
-                    )
+            HomeBottomBar(navItems, selectedNav, email) { index, route ->
+                selectedNav = index
+                if (route != Destination.HomeScreen.createRoute(email)) {
+                    navController.navigate(route)
                 }
             }
         }
@@ -142,170 +127,264 @@ fun HomeScreen(navController: NavController, email: String) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                // Abas de navegação horizontal
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    tabs.forEachIndexed { index, tab ->
-                        val isSelected = selectedTab == index
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(if (isSelected) MediPrimary else MediCardBg)
-                                .clickable {
-                                    selectedTab = index
-                                    when (index) {
-                                        1 -> navController.navigate(Destination.StockScreen.route)
-                                        2 -> navController.navigate(Destination.PrevAIScreen.route)
-                                        3 -> navController.navigate(Destination.LogisticsScreen.route)
-                                        4 -> navController.navigate(Destination.AlertsScreen.route)
-                                    }
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = tab,
-                                fontSize = 13.sp,
-                                color = if (isSelected) Color.White else MediSubtext,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
+                HomeHeader(
+                    userName = userName,
+                    onProfileClick = { /* Navegar para perfil futuramente */ }
+                )
             }
 
             item {
-                // Header card
+                HomeStats()
+            }
+
+            item {
+                HomeRecentAlerts(mockAlerts)
+            }
+
+            item {
+                HomeDemandForecastSection(mockForecast)
+            }
+
+            item {
+                HomeOngoingDeliveries(mockDeliveries)
+            }
+
+            item {
+                HomeCreditsLink(onClick = { navController.navigate(Destination.CreditsScreen.route) })
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeHeader(userName: String, onProfileClick: () -> Unit) {
+    val initials = remember(userName) {
+        if (userName.isBlank()) "US"
+        else {
+            val parts = userName.trim().split(" ")
+            if (parts.size >= 2) {
+                "${parts[0].firstOrNull() ?: ""}${parts[parts.size - 1].firstOrNull() ?: ""}".uppercase()
+            } else {
+                "${parts[0].firstOrNull() ?: ""}".uppercase()
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MediCardBg)
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "MediStock",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MediCardBg)
-                        .padding(16.dp)
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(MediError.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "MediStock",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(MediError),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("3", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(MediPrimary),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("GS", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
+                    Text("3", fontSize = 12.sp, color = MediError, fontWeight = FontWeight.Bold)
                 }
-            }
-
-            item {
-                // Estatísticas
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatCard(
-                        title = "Estoque crítico",
-                        value = "8",
-                        badgeText = "Crítico",
-                        badgeColor = MediError,
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        title = "Entregas hoje",
-                        value = "5",
-                        badgeText = "Em rota",
-                        badgeColor = MediBlue,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            item {
-                // Alertas recentes
-                SectionCard(title = "Alertas recentes", modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        mockAlerts.forEach { alert ->
-                            AlertRow(alert = alert)
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Previsão de demanda
-                SectionCard(
-                    title = "Previsão de demanda — 7 dias",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    DemandChart(forecast = mockForecast)
-                }
-            }
-
-            item {
-                // Entregas em andamento
-                SectionCard(
-                    title = "Entregas em andamento",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        mockDeliveries.forEach { delivery ->
-                            DeliveryRow(delivery = delivery)
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Créditos link
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MediCardBg)
-                        .clickable { navController.navigate(Destination.CreditsScreen.route) }
-                        .padding(14.dp),
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MediPrimary)
+                        .clickable { onProfileClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "ℹ️  Sobre o MediStock / Créditos",
+                        text = initials,
                         fontSize = 13.sp,
-                        color = MediSubtext
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun HomeStats() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween // Espaçamento entre as duas colunas
+    ) {
+        // Coluna 1: Estoque Crítico
+        StatColumn(
+            title = "Estoque crítico",
+            value = "8",
+            valueColor = MediError,
+            badgeText = "Crítico",
+            modifier = Modifier.weight(1f)
+        )
+
+        // Coluna 2: Entregas Hoje
+        StatColumn(
+            title = "Entregas hoje",
+            value = "5",
+            valueColor = Color(0, 107, 176), // Um tom de azul (MediBlue)
+            badgeText = "Em rota",
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start // Alinhado à esquerda como na foto
+        )
+    }
+}
+
+@Composable
+private fun StatColumn(
+    title: String,
+    value: String,
+    valueColor: Color,
+    badgeText: String,
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = horizontalAlignment
+    ) {
+        // Título Cinza Superior
+        Text(
+            text = title,
+            fontSize = 13.sp,
+            color = MediSubtext,
+            fontWeight = FontWeight.Medium
+        )
+
+        // Número Grande e Colorido
+        Text(
+            text = value,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold,
+            color = valueColor
+        )
+
+        // Badge (Pílula) branca com texto colorido
+        Box(
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .clip(RoundedCornerShape(50.dp))
+                .background(Color.White)
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = badgeText,
+                fontSize = 11.sp,
+                color = valueColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun HomeRecentAlerts(alerts: List<StockAlert>) {
+    SectionCard(title = "Alertas recentes", modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            alerts.forEach { alert ->
+                AlertRow(alert = alert)
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeDemandForecastSection(forecast: List<DemandForecast>) {
+    SectionCard(
+        title = "Previsão de demanda — 7 dias",
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
+        DemandChart(forecast = forecast)
+    }
+}
+
+@Composable
+fun HomeOngoingDeliveries(deliveries: List<Delivery>) {
+    SectionCard(
+        title = "Entregas em andamento",
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            deliveries.forEach { delivery ->
+                DeliveryRow(delivery = delivery)
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeCreditsLink(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MediCardBg)
+            .clickable { onClick() }
+            .padding(14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "ℹ️  Sobre o MediStock / Créditos",
+            fontSize = 13.sp,
+            color = MediSubtext
+        )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+private fun HomeBottomBar(
+    navItems: List<NavItem>,
+    selectedNav: Int,
+    email: String,
+    onNavItemClick: (Int, String) -> Unit
+) {
+    NavigationBar(containerColor = MediSurface) {
+        navItems.forEachIndexed { index, item ->
+            NavigationBarItem(
+                selected = selectedNav == index,
+                onClick = { onNavItemClick(index, item.route) },
+                icon = {
+                    if (index == 4) {
+                        BadgedBox(badge = { Badge { Text("3") } }) {
+                            Icon(item.icon, contentDescription = item.label)
+                        }
+                    } else {
+                        Icon(item.icon, contentDescription = item.label)
+                    }
+                },
+                label = { Text(item.label, fontSize = 11.sp) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MediPrimary,
+                    selectedTextColor = MediPrimary,
+                    unselectedIconColor = MediSubtext,
+                    unselectedTextColor = MediSubtext,
+                    indicatorColor = MediPrimary.copy(alpha = 0.15f)
+                )
+            )
         }
     }
 }

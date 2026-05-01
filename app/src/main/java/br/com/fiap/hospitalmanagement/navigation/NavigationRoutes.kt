@@ -42,8 +42,12 @@ fun NavigationRoutes() {
             val email = backStackEntry.arguments?.getString("email") ?: ""
             HomeScreen(navController, email)
         }
-        composable(Destination.StockScreen.route) {
-            StockScreen(navController)
+        composable(
+            route = Destination.StockScreen.route,
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            StockScreen(navController, email)
         }
         composable(Destination.AlertsScreen.route) {
             AlertsScreen(navController)
