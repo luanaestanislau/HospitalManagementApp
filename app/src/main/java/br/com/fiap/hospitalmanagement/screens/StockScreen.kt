@@ -1,6 +1,7 @@
 package br.com.fiap.hospitalmanagement.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,11 +26,13 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.model.MedItem
 import br.com.fiap.hospitalmanagement.repository.MedItemRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
@@ -87,14 +92,14 @@ fun StockScreen(navController: NavController) {
         items.filter { item ->
             val matchesSearch = item.name.contains(searchQuery, ignoreCase = true) ||
                     item.category.contains(searchQuery, ignoreCase = true)
-            
+
             val matchesFilter = when (selectedFilter) {
                 "Crítico" -> item.isLowStock
                 "Vencendo" -> item.expirationDate != null
                 "Normal" -> !item.isLowStock
                 else -> true
             }
-            
+
             matchesSearch && matchesFilter
         }
     }
@@ -109,104 +114,130 @@ fun StockScreen(navController: NavController) {
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
         ) {
-            StockHeader(onAddClick = { /* Implementar navegação para tela de adição */ })
-            
+            StockHeader(onAddClick = { /* Fazer tela de pedido */ })
+
             StockSummary(
                 totalCount = items.size,
                 criticalCount = items.count { it.isLowStock }
             )
-            
+
             Spacer(modifier = Modifier.height(20.dp))
-            
             StockSearchBar(searchQuery) { searchQuery = it }
-            
             Spacer(modifier = Modifier.height(16.dp))
-            
             StockFilters(selectedFilter) { selectedFilter = it }
-            
             Spacer(modifier = Modifier.height(20.dp))
             
-            StockListHeader()
-            
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredItems, key = { it.id }) { item ->
-                    StockItemRow(item)
-                }
-            }
-            
-            StockFooter(filteredItems.size, items.size)
+            StockDataTable(
+                filteredItems = filteredItems,
+                totalCount = items.size,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
-// Partes separadas conforme solicitado
-
 @Composable
-private fun StockHeader(onAddClick: () -> Unit) {
+fun StockHeader(onAddClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MediCardBg,
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp,
+            Color.White.copy(alpha = 0.1f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 15.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.stock),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(MediIconBg)
+                    .clickable { onAddClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add),
+                    tint = MediPrimary,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun StockHeaderPreview() {
+    HospitalManagementTheme() {
+        StockHeader {  }
+    }
+}
+@Composable
+fun StockSummary(totalCount: Int, criticalCount: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
-        Text(
-            text = "Estoque",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-        IconButton(
-            onClick = onAddClick,
-            modifier = Modifier
-                .size(32.dp)
-                .background(MediIconBg, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Adicionar",
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.total_items),
+                color = MediSubtext,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
             )
-        }
-    }
-}
-
-@Composable
-private fun StockSummary(totalCount: Int, criticalCount: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text(text = "Itens totais", color = MediSubtext, fontSize = 14.sp)
             Text(
                 text = "$totalCount",
                 color = Color.White,
-                fontSize = 32.sp,
+                fontSize = 34.sp,
                 fontWeight = FontWeight.Bold
             )
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(text = "Críticos", color = MediSubtext, fontSize = 14.sp)
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.critics),
+                color = MediSubtext,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
             Text(
                 text = "$criticalCount",
                 color = MediError,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 34.sp,
+                fontWeight = FontWeight.ExtraBold
             )
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MediError.copy(alpha = 0.15f))
-                    .padding(horizontal = 10.dp, vertical = 2.dp)
+                    .padding(top = 4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+                    .padding(horizontal = 8.dp, vertical = 1.dp)
             ) {
                 Text(
-                    text = "Atenção",
-                    color = MediError,
+                    text = stringResource(R.string.attention),
+                    color = MediError, 
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -215,8 +246,16 @@ private fun StockSummary(totalCount: Int, criticalCount: Int) {
     }
 }
 
+@Preview
 @Composable
-private fun StockSearchBar(query: String, onQueryChange: (String) -> Unit) {
+private fun StockSummaryPreview() {
+    HospitalManagementTheme() {
+        StockSummary(totalCount = 84, criticalCount = 8)
+    }
+}
+
+@Composable
+fun StockSearchBar(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
@@ -224,7 +263,11 @@ private fun StockSearchBar(query: String, onQueryChange: (String) -> Unit) {
             .fillMaxWidth()
             .height(52.dp),
         shape = RoundedCornerShape(12.dp),
-        placeholder = { Text("Buscar insumo...", color = MediSubtext, fontSize = 14.sp) },
+        placeholder = { Text(
+            stringResource(R.string.search_input),
+            color = MediSubtext,
+            fontSize = 14.sp
+        ) },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MediSubtext.copy(alpha = 0.5f),
             unfocusedBorderColor = MediSubtext.copy(alpha = 0.3f),
@@ -237,111 +280,161 @@ private fun StockSearchBar(query: String, onQueryChange: (String) -> Unit) {
     )
 }
 
+@Preview
+@Composable
+private fun StockSearchBarPreview() {
+    HospitalManagementTheme() {
+        StockSearchBar(query = String()) { }
+    }
+}
 @Composable
 private fun StockFilters(selectedFilter: String, onFilterSelected: (String) -> Unit) {
     val filters = listOf("Crítico", "Vencendo", "Normal", "Todos")
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         filters.forEach { filter ->
             val isSelected = selectedFilter == filter
+
+            val (bgColor, contentColor) = when (filter) {
+                "Crítico" -> Pair(MediError.copy(alpha = 0.15f), MediError)
+                "Vencendo" -> Pair(MediWarning.copy(alpha = 0.15f), MediWarning)
+                "Normal" -> Pair(MediSuccess.copy(alpha = 0.15f), MediSuccess)
+                else -> Pair(Color.Transparent, MediSubtext)
+            }
+
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (isSelected) MediPrimary else MediCardBg)
+                    .clip(RoundedCornerShape(50.dp))
+                    .background(if (isSelected) bgColor else Color.Transparent)
                     .clickable { onFilterSelected(filter) }
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .border(
+                        width = 1.dp,
+                        color = if (isSelected) Color.Transparent else Color.Transparent,
+                        shape = RoundedCornerShape(50.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = filter,
-                    color = if (isSelected) Color.White else MediSubtext,
+                    color = if (isSelected) contentColor else MediSubtext,
                     fontSize = 12.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                 )
             }
         }
     }
 }
 
+@Preview
 @Composable
-private fun StockListHeader() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = "Insumo", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(2f))
-        Text(text = "Qtd", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        Text(text = "Status", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+private fun StockFiltersPreview() {
+    HospitalManagementTheme() {
+        StockFilters(selectedFilter = "") { }
     }
 }
 
 @Composable
-private fun StockItemRow(item: MedItem) {
-    val statusColor = when (item.stockStatus) {
-        "Esgotado", "Crítico" -> MediError
-        "Baixo" -> MediWarning
-        else -> MediSuccess
-    }
-    
-    val displayStatus = when (item.stockStatus) {
-        "Esgotado", "Crítico" -> "Crítico"
-        "Baixo" -> "Venc."
-        else -> "Normal"
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(MediCardBg)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+private fun StockDataTable(
+    filteredItems: List<MedItem>,
+    totalCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MediCardBg,
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp,
+            Color.White.copy(alpha = 0.1f)
+        )
     ) {
-        Text(
-            text = item.name,
-            color = Color.White,
-            fontSize = 14.sp,
-            modifier = Modifier.weight(2f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = "${item.quantity}",
-            color = if (item.isLowStock) MediError else Color.White,
-            fontSize = 14.sp,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .wrapContentWidth(Alignment.End)
-                .clip(RoundedCornerShape(12.dp))
-                .background(statusColor.copy(alpha = 0.2f))
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-            contentAlignment = Alignment.Center
-        ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Insumo", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(2f))
+                Text(text = "Qtd", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Text(text = "Status", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+            }
+
+            HorizontalDivider(thickness = 0.5.dp, color = Color.White.copy(alpha = 0.1f))
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(filteredItems, key = { it.id }) { item ->
+                    val statusColor = when (item.stockStatus) {
+                        "Esgotado", "Crítico" -> MediError
+                        "Baixo" -> MediWarning
+                        else -> MediSuccess
+                    }
+
+                    val displayStatus = when (item.stockStatus) {
+                        "Esgotado", "Crítico" -> "Crítico"
+                        "Baixo" -> "Venc."
+                        else -> "Normal"
+                    }
+
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.name,
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(2f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${item.quantity}",
+                                color = if (item.isLowStock) MediError else Color.White,
+                                fontSize = 14.sp,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .wrapContentWidth(Alignment.End)
+                                    .clip(CircleShape)
+                                    .background(statusColor.copy(alpha = 0.15f))
+                                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayStatus,
+                                    color = statusColor,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.White.copy(alpha = 0.05f))
+                    }
+                }
+            }
+
             Text(
-                text = displayStatus,
-                color = statusColor,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
+                text = "${filteredItems.size} de $totalCount itens",
+                color = MediSubtext,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
             )
         }
     }
-}
-
-@Composable
-private fun StockFooter(currentCount: Int, totalCount: Int) {
-    Text(
-        text = "$currentCount de $totalCount itens",
-        color = MediSubtext,
-        fontSize = 12.sp,
-        modifier = Modifier.padding(vertical = 12.dp)
-    )
 }
 
 @Composable

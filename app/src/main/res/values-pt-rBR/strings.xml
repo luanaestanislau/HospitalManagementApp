@@ -9,4 +9,10 @@
     <string name="signin">Entrar</string>
     <string name="learn_more">Saiba mais</string>
     <string name="version_app">v1.0 · Seguro e conforme com a LGPD</string>
+    <string name="stock">Estoque</string>
+    <string name="add">Adicionar</string>
+    <string name="total_items">Itens totais</string>
+    <string name="critics">Críticos</string>
+    <string name="attention">Atenção</string>
+    <string name="search_input">Buscar insumo...</string>
 </resources>
