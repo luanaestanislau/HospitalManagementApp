@@ -41,7 +41,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.fiap.hospitalmanagement.R
+import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
@@ -52,7 +55,7 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
 import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
 
 @Composable
-fun InitialScreen(modifier: Modifier = Modifier) {
+fun InitialScreen(navController: NavController) {
     Surface(
         modifier = Modifier
         .fillMaxSize(),
@@ -193,7 +196,7 @@ private fun FeaturesSectionPreview() {
 }
 
 @Composable
-fun ActionSection() {
+fun ActionSection(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -201,7 +204,9 @@ fun ActionSection() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            onClick = {},
+            onClick = {
+                navController.navigate(Destination.LoginScreen.route)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -244,6 +249,6 @@ fun ActionSection() {
 @Composable
 private fun ActionSectionPreview() {
     HospitalManagementTheme() {
-        ActionSection()
+        ActionSection(rememberNavController())
     }
 }

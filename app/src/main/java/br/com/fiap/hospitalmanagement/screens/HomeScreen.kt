@@ -1,3 +1,5 @@
+package br.com.fiap.hospitalmanagement.screens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -61,11 +63,11 @@ private data class NavItem(val label: String, val icon: ImageVector, val route: 
 @Composable
 fun HomeScreen(navController: NavController, email: String) {
     val navItems = listOf(
-        NavItem("Home", Icons.Default.Home, Destination.DashboardScreen.createRoute(email)),
-        NavItem("Estoque", Icons.Default.Inventory, Destination.EstoqueScreen.route),
-        NavItem("IA", Icons.Default.Psychology, Destination.PrevisaoIAScreen.route),
-        NavItem("Logística", Icons.Default.LocalShipping, Destination.LogisticaScreen.route),
-        NavItem("Alertas", Icons.Default.Notifications, Destination.AlertasScreen.route)
+        NavItem("Home", Icons.Default.Home, Destination.HomeScreen.createRoute(email)),
+        NavItem("Estoque", Icons.Default.Inventory, Destination.StockScreen.route),
+        NavItem("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
+        NavItem("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
+        NavItem("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route)
     )
     var selectedNav by remember { mutableIntStateOf(0) }
     val tabs = listOf("Dashboard", "Estoque", "Previsão IA", "Logística", "Alertas", "Pedido")

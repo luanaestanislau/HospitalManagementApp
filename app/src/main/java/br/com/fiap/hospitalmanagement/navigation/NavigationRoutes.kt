@@ -20,23 +20,23 @@ fun NavigationRoutes() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Destination.SplashScreen.route
+        startDestination = Destination.InitialScreen.route
     ) {
-        composable(Destination.SplashScreen.route) {
+        composable(Destination.InitialScreen.route) {
             InitialScreen(navController)
         }
         composable(Destination.LoginScreen.route) {
             LoginScreen(navController)
         }
         composable(
-            route = Destination.FunctionalDataScreen.route,
+            route = Destination.FuncionalDataScreen.route,
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
             FuncionalDataScreen(navController, email)
         }
         composable(
-            route = Destination.DashboardScreen.route,
+            route = Destination.HomeScreen.route,
             arguments = listOf(navArgument("email") { type = NavType.StringType })
         ) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
