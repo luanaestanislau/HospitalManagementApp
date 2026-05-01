@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -20,15 +21,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -57,6 +57,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.model.MedItem
+import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.repository.MedItemRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
@@ -71,7 +72,7 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediWarning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StockScreen(navController: NavController) {
+fun StockScreen(navController: NavController, email: String = "") {
     val context = LocalContext.current
     val repository = remember { MedItemRepository(context) }
 
@@ -105,8 +106,9 @@ fun StockScreen(navController: NavController) {
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         containerColor = MediBackground,
-        bottomBar = { MedBottomBar(navController) }
+        bottomBar = { MedBottomBar(navController, email) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -132,6 +134,8 @@ fun StockScreen(navController: NavController) {
                 totalCount = items.size,
                 modifier = Modifier.weight(1f)
             )
+            
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -360,9 +364,9 @@ private fun StockDataTable(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Insumo", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(2f))
-                Text(text = "Qtd", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                Text(text = "Status", color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                Text(text = stringResource(R.string.input), color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(2f))
+                Text(text = stringResource(R.string.qtd), color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Text(text = stringResource(R.string.status), color = MediSubtext, fontSize = 12.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
             }
 
             HorizontalDivider(thickness = 0.5.dp, color = Color.White.copy(alpha = 0.1f))
@@ -439,28 +443,47 @@ private fun StockDataTable(
 }
 
 @Composable
-private fun MedBottomBar(navController: NavController) {
+private fun MedBottomBar(navController: NavController, email: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MediSurface)
+            .navigationBarsPadding()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        BottomNavItem("Home", Icons.Default.GridView, false)
-        BottomNavItem("Estoque", Icons.Default.Inventory, true)
-        BottomNavItem("IA", Icons.Default.Timeline, false)
-        BottomNavItem("Logística", Icons.Default.Schedule, false)
-        BottomNavItem("Alertas", Icons.Default.Notifications, false)
+        BottomNavItem("Home", Icons.Default.Home, false) {
+            navController.navigate(Destination.HomeScreen.createRoute(email))
+        }
+        BottomNavItem("Estoque", Icons.Default.Inventory, true) {
+            // Já está na tela de estoque
+        }
+        BottomNavItem("IA", Icons.Default.Psychology, false) {
+            navController.navigate(Destination.PrevAIScreen.route)
+        }
+        BottomNavItem("Logística", Icons.Default.LocalShipping, false) {
+            navController.navigate(Destination.LogisticsScreen.route)
+        }
+        BottomNavItem("Alertas", Icons.Default.Notifications, false) {
+            navController.navigate(Destination.AlertsScreen.route)
+        }
     }
 }
 
 @Composable
-private fun BottomNavItem(label: String, icon: ImageVector, isSelected: Boolean) {
+private fun BottomNavItem(
+    label: String, 
+    icon: ImageVector, 
+    isSelected: Boolean, 
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(4.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(4.dp)
     ) {
         Box(
             modifier = Modifier

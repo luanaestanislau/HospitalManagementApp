@@ -15,4 +15,7 @@
     <string name="critics">Críticos</string>
     <string name="attention">Atenção</string>
     <string name="search_input">Buscar insumo...</string>
+    <string name="input">Insumo</string>
+    <string name="qtd">Qtd</string>
+    <string name="status">Status</string>
 </resources>
