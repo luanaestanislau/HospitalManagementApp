@@ -54,6 +54,8 @@ import br.com.fiap.hospitalmanagement.model.Delivery
 import br.com.fiap.hospitalmanagement.model.DemandForecast
 import br.com.fiap.hospitalmanagement.model.StockAlert
 import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.repository.DeliveryRepository
+import br.com.fiap.hospitalmanagement.repository.MedItemRepository
 import br.com.fiap.hospitalmanagement.repository.UserRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
@@ -71,11 +73,20 @@ private data class NavItem(val label: String, val icon: ImageVector, val route: 
 fun HomeScreen(navController: NavController, email: String) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
+    val medItemRepository = remember { MedItemRepository(context) }
+    val deliveryRepository = remember { DeliveryRepository() }
+
     var userName by remember { mutableStateOf("") }
+    var lowStockCount by remember { mutableIntStateOf(0) }
+    var todayDeliveriesCount by remember { mutableIntStateOf(0) }
+    var ongoingDeliveries by remember { mutableStateOf(emptyList<Delivery>()) }
 
     LaunchedEffect(email) {
         val user = userRepository.getUserByEmail(email)
         userName = user?.name ?: ""
+        lowStockCount = medItemRepository.getLowStockCount()
+        todayDeliveriesCount = deliveryRepository.getTodayDeliveriesCount()
+        ongoingDeliveries = deliveryRepository.getOngoingDeliveries()
     }
 
     val navItems = listOf(
@@ -103,11 +114,6 @@ fun HomeScreen(navController: NavController, email: String) {
         DemandForecast("Dom", 0.2f)
     )
 
-    val mockDeliveries = listOf(
-        Delivery("PED-2024-001", "Eurofarma", "14:30 (Hoje)", "Em rota"),
-        Delivery("PED-2024-005", "Cristália", "Atrasado", "Pendente", isDelayed = true)
-    )
-
     Scaffold(
         containerColor = MediBackground,
         bottomBar = {
@@ -129,14 +135,15 @@ fun HomeScreen(navController: NavController, email: String) {
             item {
                 HomeHeader(
                     userName = userName,
-                    onProfileClick = { /* Navegar para perfil futuramente */ }
+                    onProfileClick = { /* Fazer tela perfil */ }
                 )
             }
-
             item {
-                HomeStats()
+                HomeStats(
+                    lowStockCount = lowStockCount,
+                    todayDeliveriesCount = todayDeliveriesCount
+                )
             }
-
             item {
                 HomeRecentAlerts(mockAlerts)
             }
@@ -146,7 +153,7 @@ fun HomeScreen(navController: NavController, email: String) {
             }
 
             item {
-                HomeOngoingDeliveries(mockDeliveries)
+                HomeOngoingDeliveries(ongoingDeliveries)
             }
 
             item {
@@ -223,7 +230,7 @@ fun HomeHeader(userName: String, onProfileClick: () -> Unit) {
 }
 
 @Composable
-fun HomeStats() {
+fun HomeStats(lowStockCount: Int, todayDeliveriesCount: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,7 +240,7 @@ fun HomeStats() {
         // Coluna 1: Estoque Crítico
         StatColumn(
             title = "Estoque crítico",
-            value = "8",
+            value = lowStockCount.toString(),
             valueColor = MediError,
             badgeText = "Crítico",
             modifier = Modifier.weight(1f)
@@ -242,7 +249,7 @@ fun HomeStats() {
         // Coluna 2: Entregas Hoje
         StatColumn(
             title = "Entregas hoje",
-            value = "5",
+            value = todayDeliveriesCount.toString(),
             valueColor = Color(0, 107, 176), // Um tom de azul (MediBlue)
             badgeText = "Em rota",
             modifier = Modifier.weight(1f),

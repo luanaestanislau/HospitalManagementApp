@@ -85,7 +85,6 @@ private val allFullAlerts = listOf(
 
 private data class AlertNavItem(val label: String, val icon: ImageVector, val route: String)
 
-// --- Tela Principal ---
 
 @Composable
 fun AlertsScreen(navController: NavController) {
@@ -116,20 +115,7 @@ fun AlertsScreen(navController: NavController) {
                 .padding(bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                AlertsTopTabs(
-                    tabs = tabs,
-                    selectedIndex = 4,
-                    onTabClick = { index ->
-                        when (index) {
-                            0 -> navController.navigate(Destination.HomeScreen.createRoute(email))
-                            1 -> navController.navigate(Destination.StockScreen.route)
-                            2 -> navController.navigate(Destination.PrevAIScreen.route)
-                            3 -> navController.navigate(Destination.LogisticsScreen.route)
-                        }
-                    }
-                )
-            }
+
 
             item {
                 AlertsDashboard(
@@ -196,38 +182,7 @@ private fun AlertsBottomNavigation(navController: NavController, email: String) 
     }
 }
 
-@Composable
-private fun AlertsTopTabs(
-    tabs: List<String>,
-    selectedIndex: Int,
-    onTabClick: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        tabs.forEachIndexed { index, tab ->
-            val isSelected = index == selectedIndex
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(if (isSelected) MediPrimary else MediCardBg)
-                    .clickable { onTabClick(index) }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = tab,
-                    fontSize = 13.sp,
-                    color = if (isSelected) Color.White else MediSubtext,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                )
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun AlertsDashboard(

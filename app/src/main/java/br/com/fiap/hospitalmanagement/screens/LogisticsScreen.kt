@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.fiap.hospitalmanagement.model.Delivery
+import br.com.fiap.hospitalmanagement.repository.DeliveryRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
@@ -44,17 +45,12 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
 import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
 import br.com.fiap.hospitalmanagement.ui.theme.MediSurface
 
-private val logisticsDeliveries = listOf(
-    Delivery("#0039", "ForneceMed", "ETA: 14:30 — hoje", "Em rota", false),
-    Delivery("#0041", "MedSupply", "Previsto: 10:00 — atrasado 4h", "Atrasado", true),
-    Delivery("#0042", "PharmaBR", "ETA: amanhã 09:00", "Aguardando", false),
-    Delivery("#0043", "ChemLab", "ETA: amanhã 14:00", "Aprovado", false),
-    Delivery("#0038", "MedTech", "Entregue ontem", "Entregue", false)
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogisticsScreen(navController: NavController) {
+    val deliveryRepository = DeliveryRepository()
+    val logisticsDeliveries = deliveryRepository.getAllDeliveries()
+
     Scaffold (
         containerColor = MediBackground,
         topBar = {
