@@ -39,4 +39,13 @@
     <string name="real_time_map">Mapa em tempo real</string>
     <string name="order_status">Pedidos em andamento</string>
     <string name="excedid_sla">SLA excedido</string>
+    <string name="prev_ai">Previsão IA</string>
+    <string name="options">Mais opções</string>
+    <string name="prev_vs_history">Histórico vs Previsão</string>
+    <string name="recommendation_ai">Recomendações da IA</string>
+    <string name="text_example">Repor 200 un. de Soro Fisiológico até 10/05. Alta prevista de +18% em jun/jul.</string>
+    <string name="text_example2">Luvas P com vencimento próximo e consumo lento. Considere redistribuição.</string>
+    <string name="create_order">Gerar pedido</string>
+    <string name="historic">Histórico</string>
+    <string name="factors_considered">Fatores considerados</string>
 </resources>
