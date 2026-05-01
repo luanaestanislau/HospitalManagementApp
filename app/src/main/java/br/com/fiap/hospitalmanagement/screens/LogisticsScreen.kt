@@ -27,8 +27,11 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -93,53 +96,48 @@ fun LogisticsScreen(navController: NavController) {
 
             item { LogisticsMapCard() }
 
-            item { LogisticsListCard(allDeliveries)
+            item {
+                LogisticsListCard(allDeliveries)
             }
-
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-
 @Composable
 private fun LogisticsHeaderCard(ongoing: Int, delayed: Int) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MediCardBg,
-        shape = RoundedCornerShape(24.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                    .padding(vertical = 12.dp, horizontal = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.logistics),
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                .border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.logistics),
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(stringResource(R.string.route), color = MediSubtext, fontSize = 12.sp)
+                Text("$ongoing", color = MediBlue, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(100.dp)
-            ) {
-                Column {
-                    Text(stringResource(R.string.route), color = MediSubtext, fontSize = 12.sp)
-                    Text("$ongoing", color = MediBlue, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                }
-                Column {
-                    Text(stringResource(R.string.delays), color = MediSubtext, fontSize = 12.sp)
-                    Text("$delayed", color = MediError, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                }
+            Column {
+                Text(stringResource(R.string.delays), color = MediSubtext, fontSize = 12.sp)
+                Text("$delayed", color = MediError, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -294,7 +292,7 @@ private fun LogisticsBottomNavigation(navController: NavController, email: Strin
             Triple("Estoque", Icons.Default.Inventory, Destination.StockScreen.createRoute(email)),
             Triple("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
             Triple("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
-            Triple("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route)
+            Triple("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route),
         )
 
         items.forEachIndexed { index, item ->

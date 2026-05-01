@@ -148,41 +148,6 @@ fun PrevAIScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    tabs.forEachIndexed { index, tab ->
-                        val isSelected = index == 2
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(if (isSelected) MediPrimary else MediCardBg)
-                                .clickable {
-                                    when (index) {
-                                        0 -> navController.navigate(Destination.HomeScreen.createRoute(email))
-                                        1 -> navController.navigate(Destination.StockScreen.route)
-                                        3 -> navController.navigate(Destination.LogisticsScreen.route)
-                                        4 -> navController.navigate(Destination.AlertsScreen.route)
-                                    }
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = tab,
-                                fontSize = 13.sp,
-                                color = if (isSelected) Color.White else MediSubtext,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
                 Text(
                     text = "Previsão IA",
                     fontSize = 22.sp,
