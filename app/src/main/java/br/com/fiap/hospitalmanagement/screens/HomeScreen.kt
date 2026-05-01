@@ -22,7 +22,9 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Badge
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -82,6 +84,7 @@ fun HomeScreen(navController: NavController, email: String) {
     var lowStockCount by remember { mutableIntStateOf(0) }
     var todayDeliveriesCount by remember { mutableIntStateOf(0) }
     var ongoingDeliveries by remember { mutableStateOf(emptyList<Delivery>()) }
+    var recentAlerts by remember { mutableStateOf(emptyList<StockAlert>()) }
 
     LaunchedEffect(email) {
         val user = userRepository.getUserByEmail(email)
@@ -89,6 +92,17 @@ fun HomeScreen(navController: NavController, email: String) {
         lowStockCount = medItemRepository.getLowStockCount()
         todayDeliveriesCount = deliveryRepository.getTodayDeliveriesCount()
         ongoingDeliveries = deliveryRepository.getOngoingDeliveries()
+
+        // Vincular alertas reais (limitado a 3)
+        val lowStockItems = medItemRepository.getLowStockItems().take(3)
+        recentAlerts = lowStockItems.mapIndexed { index, item ->
+            StockAlert(
+                id = index,
+                title = "${item.name}: Estoque Crítico",
+                timeAgo = "há ${10 + index * 5} min",
+                type = AlertType.LOW_STOCK
+            )
+        }
     }
 
     val navItems = listOf(
@@ -147,7 +161,7 @@ fun HomeScreen(navController: NavController, email: String) {
                 )
             }
             item {
-                HomeRecentAlerts(mockAlerts)
+                HomeRecentAlerts(recentAlerts, onSeeAllClick = { navController.navigate(Destination.AlertsScreen.route) })
             }
 
             item {
@@ -159,7 +173,7 @@ fun HomeScreen(navController: NavController, email: String) {
             }
 
             item {
-                HomeCreditsLink(onClick = { navController.navigate(Destination.CreditsScreen.route) })
+                HomeCreditsSection()
             }
         }
     }
@@ -301,11 +315,28 @@ private fun StatColumn(
 }
 
 @Composable
-fun HomeRecentAlerts(alerts: List<StockAlert>) {
-    SectionCard(title = "Alertas recentes", modifier = Modifier.padding(horizontal = 16.dp)) {
+fun HomeRecentAlerts(alerts: List<StockAlert>, onSeeAllClick: () -> Unit) {
+    SectionCard(
+        title = "Alertas recentes",
+        modifier = Modifier.padding(horizontal = 16.dp),
+        headerAction = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Ver todos",
+                tint = MediSubtext,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onSeeAllClick() }
+            )
+        }
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            alerts.forEach { alert ->
-                AlertRow(alert = alert)
+            if (alerts.isEmpty()) {
+                Text("Nenhum alerta recente", color = MediSubtext, fontSize = 13.sp)
+            } else {
+                alerts.forEach { alert ->
+                    AlertRow(alert = alert)
+                }
             }
         }
     }
@@ -336,24 +367,36 @@ fun HomeOngoingDeliveries(deliveries: List<Delivery>) {
 }
 
 @Composable
-fun HomeCreditsLink(onClick: () -> Unit) {
-    Box(
+fun HomeCreditsSection() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(MediCardBg)
-            .clickable { onClick() }
-            .padding(14.dp),
-        contentAlignment = Alignment.Center
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = stringResource(R.string.credits),
-            fontSize = 13.sp,
+            text = "Desenvolvido por:",
+            fontSize = 11.sp,
             color = MediSubtext
         )
+        Text(
+            text = "Luana da Silva Estanislau",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = "2026",
+            fontSize = 12.sp,
+            color = MediPrimary,
+            fontWeight = FontWeight.Medium
+        )
     }
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
@@ -419,7 +462,12 @@ private fun StatCard(
 }
 
 @Composable
-private fun SectionCard(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun SectionCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    headerAction: @Composable (() -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -428,7 +476,14 @@ private fun SectionCard(title: String, modifier: Modifier = Modifier, content: @
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            headerAction?.invoke()
+        }
         content()
     }
 }
