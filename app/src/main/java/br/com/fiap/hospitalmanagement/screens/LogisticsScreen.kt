@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.model.Delivery
 import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.repository.DeliveryRepository
@@ -87,85 +89,19 @@ fun LogisticsScreen(navController: NavController) {
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { LogisticsTabsSection(navController, email) }
-
-            item {
-                Text(
-                    text = "TELA 4 — LOGÍSTICA",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = MediSubtext,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            // Componente: Header com Estatísticas
             item { LogisticsHeaderCard(ongoingCount, delayedCount) }
 
-            // Componente: Mapa em Tempo Real
             item { LogisticsMapCard() }
 
-            // Componente: Lista de Pedidos
-            item { LogisticsListCard(allDeliveries) }
+            item { LogisticsListCard(allDeliveries)
+            }
+
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-@Composable
-private fun LogisticsTabsSection(navController: NavController, email: String) {
-    val tabs = listOf("Dashboard", "Estoque", "Previsão IA", "Logística", "Alertas", "Pedido")
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            tabs.forEachIndexed { index, tab ->
-                val isSelected = index == 3
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(if (isSelected) Color.Transparent else MediCardBg)
-                        .then(
-                            if (isSelected) Modifier.border(
-                                1.dp,
-                                Color.White.copy(alpha = 0.3f),
-                                RoundedCornerShape(10.dp)
-                            ) else Modifier
-                        )
-                        .clickable {
-                            when (index) {
-                                0 -> navController.navigate(Destination.HomeScreen.createRoute(email))
-                                1 -> navController.navigate(Destination.StockScreen.createRoute(email))
-                                2 -> navController.navigate(Destination.PrevAIScreen.route)
-                                4 -> navController.navigate(Destination.AlertsScreen.route)
-                            }
-                        }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = tab,
-                        fontSize = 13.sp,
-                        color = if (isSelected) Color.White else MediSubtext,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("...", color = MediSubtext, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-    }
-}
 
 @Composable
 private fun LogisticsHeaderCard(ongoing: Int, delayed: Int) {
@@ -183,7 +119,7 @@ private fun LogisticsHeaderCard(ongoing: Int, delayed: Int) {
                     .padding(vertical = 12.dp, horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Logística",
+                    text = stringResource(R.string.logistics),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -197,11 +133,11 @@ private fun LogisticsHeaderCard(ongoing: Int, delayed: Int) {
                 horizontalArrangement = Arrangement.spacedBy(100.dp)
             ) {
                 Column {
-                    Text("Em rota", color = MediSubtext, fontSize = 12.sp)
+                    Text(stringResource(R.string.route), color = MediSubtext, fontSize = 12.sp)
                     Text("$ongoing", color = MediBlue, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 }
                 Column {
-                    Text("Atrasados", color = MediSubtext, fontSize = 12.sp)
+                    Text(stringResource(R.string.delays), color = MediSubtext, fontSize = 12.sp)
                     Text("$delayed", color = MediError, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 }
             }
@@ -220,7 +156,6 @@ private fun LogisticsMapCard() {
         border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.1f))
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // Grade simulada
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gridStep = 40f
                 for (x in 0..(size.width / gridStep).toInt()) {
@@ -241,15 +176,20 @@ private fun LogisticsMapCard() {
                 }
             }
 
-            // Pontos simulados
             Box(modifier = Modifier.fillMaxSize()) {
-                MapDot(Modifier.align(Alignment.Center).padding(end = 60.dp, bottom = 20.dp), MediPrimary)
-                MapDot(Modifier.align(Alignment.Center).padding(top = 40.dp, start = 10.dp), MediBlue)
-                MapDot(Modifier.align(Alignment.TopEnd).padding(top = 40.dp, end = 80.dp), MediError)
+                MapDot(Modifier
+                    .align(Alignment.Center)
+                    .padding(end = 60.dp, bottom = 20.dp), MediPrimary)
+                MapDot(Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 40.dp, start = 10.dp), MediBlue)
+                MapDot(Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 40.dp, end = 80.dp), MediError)
             }
 
             Text(
-                "Mapa em tempo real",
+                stringResource(R.string.real_time_map),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -279,7 +219,7 @@ private fun LogisticsListCard(deliveries: List<Delivery>) {
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "Pedidos em andamento",
+                text = stringResource(R.string.order_status),
                 color = MediSubtext,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
@@ -314,7 +254,7 @@ private fun DeliveryItemRow(delivery: Delivery) {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
-            val subText = if (delivery.isDelayed) "SLA excedido" else delivery.eta.take(9)
+            val subText = if (delivery.isDelayed) stringResource(R.string.excedid_sla) else delivery.eta.take(9)
             Text(
                 text = subText,
                 color = if (delivery.isDelayed) MediError else MediSubtext,

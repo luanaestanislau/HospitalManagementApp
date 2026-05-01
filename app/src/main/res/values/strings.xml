@@ -34,4 +34,9 @@
     <string name="not_required_emails">E-mails pessoais (@gmail, @outlook) não são aceitos. O domínio precisa estar cadastrado pelo TI do hospital.</string>
     <string name="verify_continue">Verificar e continuar</string>
     <string name="lgpd">Acesso restrito · LGPD · Criptografia ponta a ponta</string>
+    <string name="logistics">Logística</string>
+    <string name="delays">Atrasados</string>
+    <string name="real_time_map">Mapa em tempo real</string>
+    <string name="order_status">Pedidos em andamento</string>
+    <string name="excedid_sla">SLA excedido</string>
 </resources>
