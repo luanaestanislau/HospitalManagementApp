@@ -2,8 +2,8 @@ package br.com.fiap.hospitalmanagement.screens
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,18 +24,18 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,13 +45,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.repository.DeliveryRepository
+import br.com.fiap.hospitalmanagement.repository.MedItemRepository
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
@@ -59,11 +63,8 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
 import br.com.fiap.hospitalmanagement.ui.theme.MediError
 import br.com.fiap.hospitalmanagement.ui.theme.MediPrimary
 import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
-import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
 import br.com.fiap.hospitalmanagement.ui.theme.MediSurface
 import br.com.fiap.hospitalmanagement.ui.theme.MediWarning
-
-// --- Modelos e Dados ---
 
 private enum class AlertCategory { ESTOQUE, VALIDADE, LOGISTICA }
 
@@ -79,56 +80,301 @@ private data class FullAlert(
 private val allFullAlerts = listOf(
     FullAlert(1, "Estoque crítico — Soro Fisiológico 500ml", "12 un. atual · Mínimo: 50 un.", "há 10 min", AlertCategory.ESTOQUE, "Repor"),
     FullAlert(2, "Estoque crítico — Gaze Esterilizada", "8 un. atual · Mínimo: 30 un.", "há 25 min", AlertCategory.ESTOQUE, "Repor"),
-    FullAlert(3, "Vencimento — Luvas Descartáveis P", "Validade: 15/05 · 20 dias", "há 1h", AlertCategory.VALIDADE, "Ver"),
-    FullAlert(4, "Atraso na entrega — Pedido #0041", "MedSupply · SLA +2h", "há 2h", AlertCategory.LOGISTICA, "Rastrear")
+    FullAlert(3, "Vencimento — Luvas Descartáveis P", "Validade: 15/05 · 20 dias", "há 1 h", AlertCategory.VALIDADE, "Ver"),
+    FullAlert(4, "Atraso na entrega — Pedido #0041", "MedSupply · SLA +2h", "há 2 h", AlertCategory.LOGISTICA, "Rastrear")
 )
-
-private data class AlertNavItem(val label: String, val icon: ImageVector, val route: String)
-
 
 @Composable
 fun AlertsScreen(navController: NavController) {
     val context = LocalContext.current
+    val medItemRepository = remember { MedItemRepository(context) }
+    val deliveryRepository = remember { DeliveryRepository() }
+
     val email = remember {
         context.getSharedPreferences("medistock_prefs", Context.MODE_PRIVATE)
             .getString("email", "") ?: ""
     }
 
-    val tabs = listOf("Dashboard", "Estoque", "Previsão IA", "Logística", "Alertas", "Pedido")
     var selectedFilter by remember { mutableStateOf<AlertCategory?>(null) }
+    val allAlerts = remember { mutableStateListOf<FullAlert>() }
 
-    val filteredAlerts = remember(selectedFilter) {
-        if (selectedFilter == null) allFullAlerts
-        else allFullAlerts.filter { it.category == selectedFilter }
+    LaunchedEffect(Unit) {
+        val lowStock = medItemRepository.getLowStockItems()
+        val allItems = medItemRepository.getAllItems()
+        val deliveries = deliveryRepository.getOngoingDeliveries()
+
+        val alertsList = mutableListOf<FullAlert>()
+
+        // 1. Estoque Crítico
+        lowStock.forEachIndexed { index, item ->
+            alertsList.add(
+                FullAlert(
+                    id = index,
+                    title = "Estoque crítico — ${item.name}",
+                    detail = "${item.quantity} ${item.unit} atual · Mínimo: ${item.minimumQuantity} ${item.unit}",
+                    timeAgo = "há ${10 + index * 5} min",
+                    category = AlertCategory.ESTOQUE,
+                    actionLabel = "Repor"
+                )
+            )
+        }
+
+        // 2. Vencimento (Filtramos itens que tenham data de validade e simulamos IA)
+        allItems.filter { it.expirationDate != null }.take(1).forEach { item ->
+            alertsList.add(
+                FullAlert(
+                    id = alertsList.size,
+                    title = "Vencimento — ${item.name}",
+                    detail = "Validade: ${item.expirationDate} · 20 dias",
+                    timeAgo = "há 1 h",
+                    category = AlertCategory.VALIDADE,
+                    actionLabel = "Ver"
+                )
+            )
+        }
+
+        // 3. Logística (Entregas não concluídas)
+        deliveries.take(1).forEach { delivery ->
+            alertsList.add(
+                FullAlert(
+                    id = alertsList.size,
+                    title = if (delivery.isDelayed) "Atraso na entrega — Pedido ${delivery.id}" else "Entrega em curso — Pedido ${delivery.id}",
+                    detail = "${delivery.supplier} · ${delivery.eta}",
+                    timeAgo = "há 2 h",
+                    category = AlertCategory.LOGISTICA,
+                    actionLabel = "Rastrear"
+                )
+            )
+        }
+
+        allAlerts.clear()
+        allAlerts.addAll(alertsList)
+    }
+
+    val filteredAlerts = remember(selectedFilter, allAlerts.toList()) {
+        if (selectedFilter == null) allAlerts
+        else allAlerts.filter { it.category == selectedFilter }
     }
 
     Scaffold(
         containerColor = MediBackground,
-        bottomBar = {
-            AlertsBottomNavigation(navController, email)
-        }
+        bottomBar = { AlertsBottomNavigation(navController, email) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
+            // 1. Header Card
+            item { AlertsHeaderCard(count = allAlerts.size) }
 
+            // 2. Summary Counters
             item {
-                AlertsDashboard(
-                    allAlerts = allFullAlerts,
-                    filteredAlerts = filteredAlerts,
-                    selectedFilter = selectedFilter,
-                    onFilterToggle = { category ->
-                        selectedFilter = if (selectedFilter == category) null else category
-                    }
+                AlertsSummarySection(
+                    criticos = allAlerts.count { it.category == AlertCategory.ESTOQUE },
+                    atencao = allAlerts.count { it.category != AlertCategory.ESTOQUE }
                 )
             }
 
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+            // 3. Filter Chips
+            item {
+                AlertsFilterSection(
+                    selectedFilter = selectedFilter,
+                    onFilterSelect = { selectedFilter = if (selectedFilter == it) null else it }
+                )
+            }
+
+            // 4. Alerts List Card
+            item { AlertsListCard(alerts = filteredAlerts, navController = navController, email = email) }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun AlertsHeaderCard(count: Int) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MediCardBg,
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.alerts), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, MediError.copy(alpha = 0.3f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("$count", color = MediError, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertsSummarySection(criticos: Int, atencao: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(140.dp)
+    ) {
+        Column {
+            Text(stringResource(R.string.critics), color = MediSubtext, fontSize = 12.sp)
+            Text("$criticos", color = MediError, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        }
+        Column {
+            Text(stringResource(R.string.attention), color = MediSubtext, fontSize = 12.sp)
+            Text("$atencao", color = MediWarning, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun AlertsFilterSection(selectedFilter: AlertCategory?, onFilterSelect: (AlertCategory) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        AlertFilterChip("Estoque", MediError, selectedFilter == AlertCategory.ESTOQUE) { onFilterSelect(AlertCategory.ESTOQUE) }
+        AlertFilterChip("Validade", MediWarning, selectedFilter == AlertCategory.VALIDADE) { onFilterSelect(AlertCategory.VALIDADE) }
+        AlertFilterChip("Logística", MediBlue, selectedFilter == AlertCategory.LOGISTICA) { onFilterSelect(AlertCategory.LOGISTICA) }
+    }
+}
+
+@Composable
+private fun AlertFilterChip(label: String, color: Color, isSelected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSelected) color else color.copy(alpha = 0.15f))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(label, color = if (isSelected) Color.White else color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun AlertsListCard(alerts: List<FullAlert>, navController: NavController, email: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MediCardBg,
+        shape = RoundedCornerShape(20.dp),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.1f))
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            alerts.forEachIndexed { index, alert ->
+                AlertItemRow(alert, navController, email)
+                if (index < alerts.size - 1) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.05f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertItemRow(alert: FullAlert, navController: NavController, email: String) {
+    val (iconColor, iconText) = when (alert.category) {
+        AlertCategory.ESTOQUE -> MediError to "!"
+        AlertCategory.VALIDADE -> MediWarning to "!"
+        AlertCategory.LOGISTICA -> MediBlue to "i"
+    }
+
+    val buttonColor = when (alert.actionLabel) {
+        "Repor" -> Color(0xFF7B61FF)
+        else -> Color(0xFF2C2C2C)
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(iconText, color = iconColor, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(alert.title, color = iconColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(alert.detail, color = Color.White, fontSize = 12.sp)
+            Text(alert.timeAgo, color = MediSubtext, fontSize = 11.sp)
+        }
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(buttonColor)
+                .then(
+                    if (alert.actionLabel != "Repor") Modifier.border(
+                        0.5.dp,
+                        Color.White.copy(alpha = 0.2f),
+                        RoundedCornerShape(8.dp)
+                    ) else Modifier
+                )
+                .padding(horizontal = 14.dp, vertical = 6.dp)
+                .clickable {
+                    when (alert.actionLabel) {
+                        "Repor" -> navController.navigate(Destination.PrevAIScreen.route)
+                        "Ver" -> navController.navigate(Destination.StockScreen.createRoute(email))
+                        "Rastrear" -> navController.navigate(Destination.LogisticsScreen.route)
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(alert.actionLabel, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun AlertsBottomNavigation(navController: NavController, email: String) {
+    NavigationBar(containerColor = MediSurface) {
+        val items = listOf(
+            Triple("Home", Icons.Default.Home, Destination.HomeScreen.createRoute(email)),
+            Triple("Estoque", Icons.Default.Inventory, Destination.StockScreen.createRoute(email)),
+            Triple("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
+            Triple("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
+            Triple("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route)
+        )
+
+        items.forEachIndexed { index, item ->
+            val isSelected = index == 4
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { if (!isSelected) navController.navigate(item.third) },
+                icon = { Icon(item.second, contentDescription = item.first, modifier = Modifier.size(24.dp)) },
+                label = { Text(item.first, fontSize = 10.sp) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MediPrimary,
+                    selectedTextColor = MediPrimary,
+                    unselectedIconColor = MediSubtext,
+                    unselectedTextColor = MediSubtext,
+                    indicatorColor = Color.Transparent
+                )
+            )
         }
     }
 }
@@ -136,218 +382,5 @@ fun AlertsScreen(navController: NavController) {
 @Preview
 @Composable
 private fun AlertsScreenPreview() {
-    HospitalManagementTheme() {
-        AlertsScreen(rememberNavController())
-    }
-}
-// --- Componentes Particionados ---
-
-@Composable
-private fun AlertsBottomNavigation(navController: NavController, email: String) {
-    val navItems = listOf(
-        AlertNavItem("Home", Icons.Default.Home, Destination.HomeScreen.createRoute(email)),
-        AlertNavItem("Estoque", Icons.Default.Inventory, Destination.StockScreen.route),
-        AlertNavItem("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
-        AlertNavItem("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
-        AlertNavItem("Alertas", Icons.Default.Notifications, Destination.AlertsScreen.route)
-    )
-
-    NavigationBar(containerColor = MediSurface) {
-        navItems.forEachIndexed { index, item ->
-            val isSelected = index == 4
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { if (!isSelected) navController.navigate(item.route) },
-                icon = {
-                    if (isSelected) {
-                        BadgedBox(
-                            badge = { Badge { Text("${allFullAlerts.size}") } }
-                        ) {
-                            Icon(item.icon, contentDescription = item.label)
-                        }
-                    } else {
-                        Icon(item.icon, contentDescription = item.label)
-                    }
-                },
-                label = { Text(item.label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MediPrimary,
-                    selectedTextColor = MediPrimary,
-                    unselectedIconColor = MediSubtext,
-                    unselectedTextColor = MediSubtext,
-                    indicatorColor = MediPrimary.copy(alpha = 0.15f)
-                )
-            )
-        }
-    }
-}
-
-
-
-@Composable
-private fun AlertsDashboard(
-    allAlerts: List<FullAlert>,
-    filteredAlerts: List<FullAlert>,
-    selectedFilter: AlertCategory?,
-    onFilterToggle: (AlertCategory) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MediCardBg)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Header do Card
-        AlertsCardHeader(count = allAlerts.size)
-
-        // Contadores
-        AlertsCounters(allAlerts = allAlerts)
-
-        // Chips de Filtro
-        AlertsFilterRow(selectedFilter = selectedFilter, onFilterToggle = onFilterToggle)
-
-        // Lista de Alertas
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            filteredAlerts.forEach { alert ->
-                FullAlertRow(alert = alert)
-            }
-        }
-    }
-}
-
-@Composable
-private fun AlertsCardHeader(count: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("Alertas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(MediError),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("$count", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun AlertsCounters(allAlerts: List<FullAlert>) {
-    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-        Column {
-            Text("Críticos", fontSize = 12.sp, color = MediSubtext)
-            Text(
-                "${allAlerts.count { it.category == AlertCategory.ESTOQUE }}",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MediError
-            )
-        }
-        Column {
-            Text("Atenção", fontSize = 12.sp, color = MediSubtext)
-            Text(
-                "${allAlerts.count { it.category != AlertCategory.ESTOQUE }}",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MediWarning
-            )
-        }
-    }
-}
-
-@Composable
-private fun AlertsFilterRow(
-    selectedFilter: AlertCategory?,
-    onFilterToggle: (AlertCategory) -> Unit
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        AlertFilterChip(
-            label = "Estoque",
-            color = MediError,
-            selected = selectedFilter == AlertCategory.ESTOQUE,
-            onClick = { onFilterToggle(AlertCategory.ESTOQUE) }
-        )
-        AlertFilterChip(
-            label = "Validade",
-            color = MediSuccess,
-            selected = selectedFilter == AlertCategory.VALIDADE,
-            onClick = { onFilterToggle(AlertCategory.VALIDADE) }
-        )
-        AlertFilterChip(
-            label = "Logística",
-            color = MediBlue,
-            selected = selectedFilter == AlertCategory.LOGISTICA,
-            onClick = { onFilterToggle(AlertCategory.LOGISTICA) }
-        )
-    }
-}
-
-@Composable
-private fun AlertFilterChip(label: String, color: Color, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (selected) color else color.copy(alpha = 0.2f))
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = if (selected) Color.White else color,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-private fun FullAlertRow(alert: FullAlert) {
-    val alertColor = when (alert.category) {
-        AlertCategory.ESTOQUE -> MediError
-        AlertCategory.VALIDADE -> MediWarning
-        AlertCategory.LOGISTICA -> MediBlue
-    }
-    val actionColor = when (alert.actionLabel) {
-        "Repor" -> MediWarning
-        "Ver" -> MediSuccess
-        "Rastrear" -> MediBlue
-        else -> MediPrimary
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(alertColor.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "i", color = alertColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        }
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(text = alert.title, fontSize = 13.sp, color = alertColor, fontWeight = FontWeight.Medium)
-            Text(text = alert.detail, fontSize = 11.sp, color = MediSubtext)
-            Text(text = alert.timeAgo, fontSize = 11.sp, color = MediSubtext)
-        }
-        Button(
-            onClick = {},
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = actionColor),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Text(text = alert.actionLabel, fontSize = 12.sp, color = Color.White)
-        }
-    }
+    HospitalManagementTheme { AlertsScreen(rememberNavController()) }
 }

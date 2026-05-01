@@ -43,12 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.R
 import br.com.fiap.hospitalmanagement.model.AlertType
 import br.com.fiap.hospitalmanagement.model.Delivery
 import br.com.fiap.hospitalmanagement.model.DemandForecast
@@ -191,7 +193,7 @@ fun HomeHeader(userName: String, onProfileClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "MediStock",
+                text = stringResource(R.string.medistock),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -207,7 +209,7 @@ fun HomeHeader(userName: String, onProfileClick: () -> Unit) {
                         .background(MediError.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("3", fontSize = 12.sp, color = MediError, fontWeight = FontWeight.Bold)
+                    Text("4", fontSize = 12.sp, color = MediError, fontWeight = FontWeight.Bold)
                 }
                 Box(
                     modifier = Modifier
@@ -235,25 +237,22 @@ fun HomeStats(lowStockCount: Int, todayDeliveriesCount: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween // Espaçamento entre as duas colunas
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Coluna 1: Estoque Crítico
         StatColumn(
-            title = "Estoque crítico",
+            title = stringResource(R.string.critic_stock),
             value = lowStockCount.toString(),
             valueColor = MediError,
-            badgeText = "Crítico",
+            badgeText = stringResource(R.string.critic),
             modifier = Modifier.weight(1f)
         )
-
-        // Coluna 2: Entregas Hoje
         StatColumn(
-            title = "Entregas hoje",
+            title = stringResource(R.string.delivery_today),
             value = todayDeliveriesCount.toString(),
-            valueColor = Color(0, 107, 176), // Um tom de azul (MediBlue)
-            badgeText = "Em rota",
+            valueColor = Color(0, 107, 176),
+            badgeText = stringResource(R.string.route),
             modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start // Alinhado à esquerda como na foto
+            horizontalAlignment = Alignment.Start
         )
     }
 }
@@ -272,23 +271,18 @@ private fun StatColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = horizontalAlignment
     ) {
-        // Título Cinza Superior
         Text(
             text = title,
             fontSize = 13.sp,
             color = MediSubtext,
             fontWeight = FontWeight.Medium
         )
-
-        // Número Grande e Colorido
         Text(
             text = value,
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             color = valueColor
         )
-
-        // Badge (Pílula) branca com texto colorido
         Box(
             modifier = Modifier
                 .padding(top = 2.dp)
@@ -320,7 +314,7 @@ fun HomeRecentAlerts(alerts: List<StockAlert>) {
 @Composable
 fun HomeDemandForecastSection(forecast: List<DemandForecast>) {
     SectionCard(
-        title = "Previsão de demanda — 7 dias",
+        title = stringResource(R.string.prev_days),
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
         DemandChart(forecast = forecast)
@@ -330,7 +324,7 @@ fun HomeDemandForecastSection(forecast: List<DemandForecast>) {
 @Composable
 fun HomeOngoingDeliveries(deliveries: List<Delivery>) {
     SectionCard(
-        title = "Entregas em andamento",
+        title = stringResource(R.string.delivery_status),
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -354,7 +348,7 @@ fun HomeCreditsLink(onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "ℹ️  Sobre o MediStock / Créditos",
+            text = stringResource(R.string.credits),
             fontSize = 13.sp,
             color = MediSubtext
         )
@@ -376,7 +370,7 @@ private fun HomeBottomBar(
                 onClick = { onNavItemClick(index, item.route) },
                 icon = {
                     if (index == 4) {
-                        BadgedBox(badge = { Badge { Text("3") } }) {
+                        BadgedBox(badge = { Badge { Text("4") } }) {
                             Icon(item.icon, contentDescription = item.label)
                         }
                     } else {

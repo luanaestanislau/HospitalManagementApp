@@ -1,0 +1,8 @@
+private val ALLOWED_DOMAINS = listOf(
+    "hc.unicamp.br" to "Hospital das Clínicas",
+    "einstein.br" to "Hospital Albert Einstein",
+    "hcor.com.br" to "HCor",
+    "incor.usp.br" to "InCor – USP",
+    "hsl.org.br" to "Hospital Sírio-Libanês",
+    "medistock.hosp.br" to "MediStock Hospital"
+)
