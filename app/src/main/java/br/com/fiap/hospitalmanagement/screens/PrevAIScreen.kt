@@ -37,8 +37,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,10 +48,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
 import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
@@ -97,7 +102,7 @@ fun PrevAIScreen(navController: NavController) {
     }
 
     val navItems = listOf(
-        IaNavItem("Home", Icons.Default.Home, Destination.DashboardScreen.createRoute(email)),
+        IaNavItem("Home", Icons.Default.Home, Destination.HomeScreen.createRoute(email)),
         IaNavItem("Estoque", Icons.Default.Inventory, Destination.StockScreen.route),
         IaNavItem("IA", Icons.Default.Psychology, Destination.PrevAIScreen.route),
         IaNavItem("Logística", Icons.Default.LocalShipping, Destination.LogisticsScreen.route),
@@ -374,6 +379,14 @@ fun PrevAIScreen(navController: NavController) {
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PrevAIScreenPreview() {
+    HospitalManagementTheme {
+        PrevAIScreen(rememberNavController())
     }
 }
 
