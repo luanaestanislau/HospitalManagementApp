@@ -16,24 +16,35 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
@@ -45,12 +56,24 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
 
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun LoginScreen(navController: NavController, modifier: Modifier) {
     Surface(
         modifier = modifier
             .fillMaxSize(),
                 color = MediBackground
     ) {
+        val context = LocalContext.current
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var showPassword by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        val emailDomain = email.substringAfter("@", "")
+        val recognizedDomain = ALLOWED_DOMAINS.find { it.first == emailDomain }
+        val isBlockedPersonalEmail = emailDomain.isNotBlank() && recognizedDomain == null
+                && (emailDomain.endsWith("gmail.com") || emailDomain.endsWith("outlook.com")
+                || emailDomain.endsWith("yahoo.com") || emailDomain.endsWith("hotmail.com"))
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,15 +93,13 @@ fun LoginScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun LoginScreenPreview() {
     HospitalManagementTheme() {
-        LoginScreen()
+        LoginScreen(rememberNavController(), modifier = Modifier)
     }
 }
 
 
 @Composable
 fun HeaderSectionLogin(modifier: Modifier = Modifier) {
-    // Removed verticalScroll to fix "measured with infinity maximum height constraints" error.
-    // Also removed redundant padding and spacer as they are already handled by the parent LoginScreen Column.
     Column(
         modifier = modifier
             .fillMaxWidth(),
@@ -122,7 +143,7 @@ private fun HeaderSectionLoginPreview() {
 }
 
 @Composable
-fun Forms(modifier: Modifier = Modifier) {
+fun Forms(navController: NavController, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,9 +159,10 @@ fun Forms(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Medium
         )
         OutlinedTextField(
-            value = "",
+            value = email,
             onValueChange = {
-
+                email = it
+                errorMessage = null
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
@@ -158,7 +180,7 @@ fun Forms(modifier: Modifier = Modifier) {
             )
         )
 
-        if (null == null) {
+        if (recognizedDomain != null) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -167,7 +189,7 @@ fun Forms(modifier: Modifier = Modifier) {
                     .padding(10.dp)
             ) {
                 Text(
-                    text = "Domínio reconhecido: ",
+                    text = "Domínio reconhecido: @\${recognizedDomain.first} — \${recognizedDomain.second} ",
                     fontSize = 12.sp,
                     color = MediSuccess
                 )
@@ -181,14 +203,26 @@ fun Forms(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Medium
         )
         OutlinedTextField(
-            value = "",
+            value = password,
             onValueChange = {
-
+                password = it
+                errorMessage = null
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             singleLine = true,
-
+            visualTransformation = if (showPassword) VisualTransformation.None
+            else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton (onClick = { showPassword = !showPassword }) {
+                    Icon(
+                        imageVector = if (showPassword) Icons.Default.Visibility
+                        else Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                        tint = MediSubtext
+                    )
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MediPrimary,
                 unfocusedBorderColor = MediSubtext,
@@ -208,8 +242,7 @@ fun Forms(modifier: Modifier = Modifier) {
         )
     }
 
-    // Bloqueio de domínio pessoal (fora do card)
-    if (null == null) {
+    if (isBlockedPersonalEmail) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,15 +251,15 @@ fun Forms(modifier: Modifier = Modifier) {
                 .padding(10.dp)
         ) {
             Text(
-                text = "Exemplo de bloqueio: .",
+                text = "Exemplo de bloqueio: \$email — domínio não autorizado. Contate o departamento de TI.",
                 fontSize = 12.sp,
                 color = MediError
             )
         }
     }
-    if (null != null) {
+    if (errorMessage != null) {
         Text(
-            text = "",
+            text = errorMessage!!,
             fontSize = 12.sp,
             color = MediError
         )
@@ -234,10 +267,22 @@ fun Forms(modifier: Modifier = Modifier) {
 
     Button(
         onClick = {
-
-
-
-
+            when {
+                email.isBlank() || password.isBlank() -> {
+                    errorMessage = "Preencha todos os campos."
+                }
+                recognizedDomain == null -> {
+                    errorMessage = "Domínio de e-mail não autorizado."
+                }
+                password.length < 4 -> {
+                    errorMessage = "Senha inválida."
+                }
+                else -> {
+                    val prefs = context.getSharedPreferences("medistock_prefs", Context.MODE_PRIVATE)
+                    prefs.edit().putString("email", email).apply()
+                    navController.navigate(Destination.FuncionalDataScreen.createRoute(email))
+                }
+            }
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -264,7 +309,7 @@ fun Forms(modifier: Modifier = Modifier) {
 @Composable
 private fun FormsPreview() {
     HospitalManagementTheme() {
-        Forms()
+        Forms(rememberNavController())
     }
 }
 
