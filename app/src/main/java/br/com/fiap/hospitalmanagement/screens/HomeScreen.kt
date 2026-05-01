@@ -1,7 +1,65 @@
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import br.com.fiap.hospitalmanagement.model.AlertType
+import br.com.fiap.hospitalmanagement.model.Delivery
+import br.com.fiap.hospitalmanagement.model.DemandForecast
+import br.com.fiap.hospitalmanagement.model.StockAlert
+import br.com.fiap.hospitalmanagement.navigation.Destination
+import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
+import br.com.fiap.hospitalmanagement.ui.theme.MediBlue
+import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
+import br.com.fiap.hospitalmanagement.ui.theme.MediError
+import br.com.fiap.hospitalmanagement.ui.theme.MediPrimary
+import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
+import br.com.fiap.hospitalmanagement.ui.theme.MediSurface
+import br.com.fiap.hospitalmanagement.ui.theme.MediWarning
+
 private data class NavItem(val label: String, val icon: ImageVector, val route: String)
 
 @Composable
-fun DashboardScreen(navController: NavController, email: String) {
+fun HomeScreen(navController: NavController, email: String) {
     val navItems = listOf(
         NavItem("Home", Icons.Default.Home, Destination.DashboardScreen.createRoute(email)),
         NavItem("Estoque", Icons.Default.Inventory, Destination.EstoqueScreen.route),
@@ -22,7 +80,7 @@ fun DashboardScreen(navController: NavController, email: String) {
                         selected = selectedNav == index,
                         onClick = {
                             selectedNav = index
-                            if (item.route != Destination.DashboardScreen.createRoute(email)) {
+                            if (item.route != Destination.HomeScreen.createRoute(email)) {
                                 navController.navigate(item.route)
                             }
                         },
@@ -57,7 +115,7 @@ fun DashboardScreen(navController: NavController, email: String) {
         ) {
             item {
                 // Abas de navegação horizontal
-                Row(
+                Row (
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
@@ -73,11 +131,10 @@ fun DashboardScreen(navController: NavController, email: String) {
                                 .clickable {
                                     selectedTab = index
                                     when (index) {
-                                        1 -> navController.navigate(Destination.EstoqueScreen.route)
-                                        2 -> navController.navigate(Destination.PrevisaoIAScreen.route)
-                                        3 -> navController.navigate(Destination.LogisticaScreen.route)
-                                        4 -> navController.navigate(Destination.AlertasScreen.route)
-                                        5 -> navController.navigate(Destination.PedidoScreen.route)
+                                        1 -> navController.navigate(Destination.StockScreen.route)
+                                        2 -> navController.navigate(Destination.PrevAIScreen.route)
+                                        3 -> navController.navigate(Destination.LogisticsScreen.route)
+                                        4 -> navController.navigate(Destination.AlertsScreen.route)
                                     }
                                 }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
