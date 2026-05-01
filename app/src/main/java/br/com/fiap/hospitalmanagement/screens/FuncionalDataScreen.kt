@@ -1,5 +1,6 @@
 package br.com.fiap.hospitalmanagement.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,15 +24,23 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.fiap.hospitalmanagement.navigation.Destination
 import br.com.fiap.hospitalmanagement.ui.theme.HospitalManagementTheme
 import br.com.fiap.hospitalmanagement.ui.theme.MediBackground
 import br.com.fiap.hospitalmanagement.ui.theme.MediCardBg
@@ -41,7 +50,15 @@ import br.com.fiap.hospitalmanagement.ui.theme.MediSubtext
 import br.com.fiap.hospitalmanagement.ui.theme.MediSuccess
 
 @Composable
-fun FuncionalDataScreen(modifier: Modifier = Modifier) {
+fun FuncionalDataScreen(navController: NavController, email: String) {
+
+    val context = LocalContext.current
+    var matricula by remember { mutableStateOf("HC-2026-08742") }
+    var department by remember { mutableStateOf("Comissão de Farmácia e Terapêutica") }
+    var role by remember { mutableStateOf("Farmacêutica Responsável") }
+    var registry by remember { mutableStateOf("CRF-SP 1234") }
+    val isValid = matricula.isNotBlank() && department.isNotBlank() && role.isNotBlank()
+
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -56,7 +73,19 @@ fun FuncionalDataScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             HeaderIcon()
-            FormsFuncionalData()
+            FormsFuncionalData(
+                navController = navController,
+                email = email,
+                matricula = matricula,
+                onMatriculaChange = { matricula = it },
+                department = department,
+                onDepartmentChange = { department = it },
+                role = role,
+                onRoleChange = { role = it },
+                registry = registry,
+                onRegistryChange = { registry = it },
+                isValid = isValid
+            )
 
         }
     }
@@ -66,7 +95,7 @@ fun FuncionalDataScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun FuncionalDataScreenPreview() {
     HospitalManagementTheme() {
-        FuncionalDataScreen()
+        FuncionalDataScreen(rememberNavController(), email = "")
     }
 }
 
@@ -97,9 +126,23 @@ private fun HeaderIconPreview() {
 }
 
 @Composable
-fun FormsFuncionalData(modifier: Modifier = Modifier) {
+fun FormsFuncionalData(
+    navController: NavController,
+    email: String,
+    matricula: String,
+    onMatriculaChange: (String) -> Unit,
+    department: String,
+    onDepartmentChange: (String) -> Unit,
+    role: String,
+    onRoleChange: (String) -> Unit,
+    registry: String,
+    onRegistryChange: (String) -> Unit,
+    isValid: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MediCardBg)
@@ -113,15 +156,16 @@ fun FormsFuncionalData(modifier: Modifier = Modifier) {
             color = Color.White
         )
 
-        FunctionalField(label = "Matrícula funcional", value = "matricula") {}
-        FunctionalField(label = "Departamento", value = "department") { }
-        FunctionalField(label = "Cargo / Função", value = "role") { }
+        FunctionalField(label = "Matrícula funcional", value = matricula, onValueChange = onMatriculaChange)
+        FunctionalField(label = "Departamento", value = department, onValueChange = onDepartmentChange)
+        FunctionalField(label = "Cargo / Função", value = role, onValueChange = onRoleChange)
         FunctionalField(
             label = "Registro profissional (CRF/CRM/etc.)",
-            value = ""
-        ) { }
+            value = registry,
+            onValueChange = onRegistryChange
+        )
 
-        if (null ==  null) {
+        if (isValid) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -140,10 +184,17 @@ fun FormsFuncionalData(modifier: Modifier = Modifier) {
 
     Button(
         onClick = {
-
-            },
-
-
+            val prefs = context.getSharedPreferences("medistock_prefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString("matricula", matricula)
+                .putString("department", department)
+                .putString("role", role)
+                .putString("registry", registry)
+                .apply()
+            navController.navigate(Destination.HomeScreen.createRoute(email)) {
+                popUpTo(Destination.InitialScreen.route) { inclusive = false }
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -164,11 +215,24 @@ fun FormsFuncionalData(modifier: Modifier = Modifier) {
     )
 }
 
+
 @Preview
 @Composable
 private fun FormsFuncionalDataPreview() {
     HospitalManagementTheme() {
-        FormsFuncionalData()
+        FormsFuncionalData(
+            navController = rememberNavController(),
+            email = "teste@hospital.br",
+            matricula = "HC-123",
+            onMatriculaChange = {},
+            department = "TI",
+            onDepartmentChange = {},
+            role = "Dev",
+            onRoleChange = {},
+            registry = "123",
+            onRegistryChange = {},
+            isValid = true
+        )
     }
 }
 @Composable
