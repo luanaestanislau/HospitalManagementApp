@@ -85,7 +85,6 @@ fun HeaderSectionLogin(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .size(72.dp)
