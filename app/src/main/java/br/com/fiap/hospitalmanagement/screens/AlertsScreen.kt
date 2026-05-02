@@ -105,7 +105,6 @@ fun AlertsScreen(navController: NavController) {
 
         val alertsList = mutableListOf<FullAlert>()
 
-        // 1. Estoque Crítico
         lowStock.forEachIndexed { index, item ->
             alertsList.add(
                 FullAlert(
@@ -119,7 +118,6 @@ fun AlertsScreen(navController: NavController) {
             )
         }
 
-        // 2. Vencimento (Filtramos itens que tenham data de validade e simulamos IA)
         allItems.filter { it.expirationDate != null }.take(1).forEach { item ->
             alertsList.add(
                 FullAlert(
@@ -133,7 +131,6 @@ fun AlertsScreen(navController: NavController) {
             )
         }
 
-        // 3. Logística (Entregas não concluídas)
         deliveries.take(1).forEach { delivery ->
             alertsList.add(
                 FullAlert(
@@ -169,26 +166,20 @@ fun AlertsScreen(navController: NavController) {
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // 1. Header Card
             item { AlertsHeaderCard(count = allAlerts.size) }
 
-            // 2. Summary Counters
             item {
                 AlertsSummarySection(
                     criticos = allAlerts.count { it.category == AlertCategory.ESTOQUE },
                     atencao = allAlerts.count { it.category != AlertCategory.ESTOQUE }
                 )
             }
-
-            // 3. Filter Chips
             item {
                 AlertsFilterSection(
                     selectedFilter = selectedFilter,
                     onFilterSelect = { selectedFilter = if (selectedFilter == it) null else it }
                 )
             }
-
-            // 4. Alerts List Card
             item { AlertsListCard(alerts = filteredAlerts, navController = navController, email = email) }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
